@@ -3,16 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Farkle</title>
+  <title>Farkle Score Tracker</title>
   <style>
-    body {
+    html, body {
+      margin: 0;
+      padding: 0;
       font-family: Arial, sans-serif;
       background: linear-gradient(135deg, #4facfe, #00f2fe);
       color: #333;
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       height: 100vh;
     }
     .container {
@@ -20,22 +18,43 @@
       border-radius: 10px;
       padding: 20px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      width: 300px;
-      text-align: center;
+      margin: 20px auto;
+      max-width: 800px;
+      width: 90%;
     }
-    h1 {
+    h1, h2 {
       font-size: 24px;
       color: #4facfe;
+      text-align: center;
+      cursor: pointer;
     }
-    label, input, button {
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+    tr.current-player {
+      background-color: #d3f9d8;
+    }
+    label, input, button, .slider-container {
       display: block;
       margin: 10px auto;
+      width: 80%;
     }
-    input {
-      padding: 8px;
-      width: 90%;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+    input[type="range"] {
+      width: 100%;
+    }
+    .slider-value {
+      text-align: center;
+      font-size: 16px;
+      margin-top: 5px;
     }
     button {
       padding: 10px 15px;
@@ -53,62 +72,253 @@
       margin-top: 10px;
       font-weight: bold;
     }
+    .controls {
+      margin: 20px;
+      text-align: center;
+    }
+    .collapsible-content {
+      display: none;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+    .round-counter {
+      text-align: center;
+      font-size: 18px;
+      margin-top: 10px;
+      font-weight: bold;
+      color: #333;
+    }
   </style>
 </head>
 <body>
+  <!-- Farkle Score Tracker -->
   <div class="container">
-    <h1>Farkle</h1>
-    <div id="setup">
-      <label for="min">Enter Minimum:</label>
-      <input type="number" id="min" placeholder="Minimum value">
-      <label for="max">Enter Maximum:</label>
-      <input type="number" id="max" placeholder="Maximum value">
-      <button onclick="startGame()">Start Game</button>
+    <h1>Farkle Score Tracker</h1>
+    <div id="score-setup">
+      <h2>Game Setup</h2>
+      <label for="playerCount">Number of Players:</label>
+      <input type="number" id="playerCount" min="2" placeholder="Enter number of players">
+      <button onclick="setupScoreTracker()">Next</button>
+      <div id="playerNames"></div>
     </div>
-    <div id="game" style="display: none;">
-      <label for="score">What is your score?</label>
-      <input type="number" id="score" placeholder="Enter your score">
-      <button onclick="checkScore()">Submit</button>
-      <div class="message" id="message"></div>
+    <div id="score-game" style="display: none;">
+      <h2>Scoreboard</h2>
+      <div class="round-counter">Rounds Completed: <span id="roundCounter">0</span></div>
+      <table id="scoreTable">
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="controls">
+        <div class="slider-container">
+          <label for="pointsSlider">Select Points for Current Player:</label>
+          <input type="range" id="pointsSlider" min="0" max="3000" step="50" value="0" oninput="syncSliderAndInput('slider')">
+          <div class="slider-value">Selected Points: <span id="sliderValue">0</span></div>
+          <input type="number" id="pointsInput" min="0" max="3000" step="50" value="0" oninput="syncSliderAndInput('input')" placeholder="Enter points manually">
+        </div>
+        <button onclick="nextTurn()">Next Turn</button>
+        <button onclick="resetScoreTracker()">Reset Score Tracker</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Random Score Game -->
+  <div class="container">
+    <h1 id="randomScoreToggle" onclick="toggleCollapsible()">Random Score Game Mode (optional)</h1>
+    <div id="randomScoreContent" class="collapsible-content">
+      <div id="range-setup">
+        <label for="min">Enter Minimum:</label>
+        <input type="number" id="min" placeholder="Minimum value">
+        <label for="max">Enter Maximum:</label>
+        <input type="number" id="max" placeholder="Maximum value">
+        <button onclick="startRandomGame()">Start Game</button>
+      </div>
+      <div id="range-game" style="display: none;">
+        <label for="score">What is your score?</label>
+        <input type="number" id="score" placeholder="Enter your score">
+        <button onclick="checkRandomScore()">Submit</button>
+        <button onclick="resetRandomGame()">Reset Random Score</button>
+        <div class="message" id="message"></div>
+      </div>
     </div>
   </div>
 
   <script>
-    let randomNumber;
+    // Farkle Score Tracker Variables
+    let players = [];
+    let currentPlayerIndex = 0;
+    let roundCounter = 0;
 
-    function startGame() {
-      const min = parseInt(document.getElementById('min').value);
-      const max = parseInt(document.getElementById('max').value);
+    // Sync Slider and Input
+    function syncSliderAndInput(source) {
+      const slider = document.getElementById("pointsSlider");
+      const input = document.getElementById("pointsInput");
+      const sliderValue = document.getElementById("sliderValue");
 
-      if (isNaN(min) || isNaN(max) || min >= max) {
-        alert('Please enter a valid range where minimum is less than maximum.');
+      if (source === "slider") {
+        input.value = slider.value;
+      } else {
+        slider.value = input.value;
+      }
+      sliderValue.textContent = slider.value;
+    }
+
+    // Set up players for the Farkle Score Tracker
+    function setupScoreTracker() {
+      const playerCount = parseInt(document.getElementById("playerCount").value);
+      if (!playerCount || playerCount < 2) {
+        alert("Please enter a valid number of players (minimum 2).");
         return;
       }
 
-      // Generate random number in range [min, max]
-      randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+      const playerNamesDiv = document.getElementById("playerNames");
+      playerNamesDiv.innerHTML = "";
 
-      // Switch to game screen
-      document.getElementById('setup').style.display = 'none';
-      document.getElementById('game').style.display = 'block';
-      document.getElementById('message').textContent = ''; // Clear any previous messages
+      for (let i = 1; i <= playerCount; i++) {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.placeholder = `Player ${i} Name`;
+        input.id = `player-${i}`;
+        playerNamesDiv.appendChild(input);
+        playerNamesDiv.appendChild(document.createElement("br"));
+      }
+
+      const startButton = document.createElement("button");
+      startButton.textContent = "Start Game";
+      startButton.onclick = startScoreGame;
+      playerNamesDiv.appendChild(startButton);
     }
 
-    function checkScore() {
-      const userScore = parseInt(document.getElementById('score').value);
+    function startScoreGame() {
+      players = [];
+      const playerCount = parseInt(document.getElementById("playerCount").value);
+
+      for (let i = 1; i <= playerCount; i++) {
+        const nameInput = document.getElementById(`player-${i}`);
+        const name = nameInput.value || `Player ${i}`;
+        players.push({ id: i, name: name, score: 0 });
+      }
+
+      roundCounter = 0;
+      updateRoundCounter();
+      setupScoreboard();
+    }
+
+    function setupScoreboard() {
+      const scoreTableBody = document.querySelector("#scoreTable tbody");
+      scoreTableBody.innerHTML = "";
+
+      players.forEach((player, index) => {
+        const row = document.createElement("tr");
+        row.id = `player-row-${index}`;
+        if (index === currentPlayerIndex) {
+          row.classList.add("current-player");
+        }
+
+        const nameCell = document.createElement("td");
+        nameCell.textContent = `${player.id}. ${player.name}`;
+        row.appendChild(nameCell);
+
+        const scoreCell = document.createElement("td");
+        scoreCell.textContent = player.score;
+        scoreCell.id = `score-${player.id}`;
+        row.appendChild(scoreCell);
+
+        scoreTableBody.appendChild(row);
+      });
+
+      document.getElementById("score-setup").style.display = "none";
+      document.getElementById("score-game").style.display = "block";
+    }
+
+    function updateRoundCounter() {
+      document.getElementById("roundCounter").textContent = roundCounter;
+    }
+
+    function nextTurn() {
+      const points = parseInt(document.getElementById("pointsSlider").value);
+
+      players[currentPlayerIndex].score += points;
+      document.getElementById(`score-${players[currentPlayerIndex].id}`).textContent = players[currentPlayerIndex].score;
+
+      currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+
+      if (currentPlayerIndex === 0) {
+        roundCounter++;
+        updateRoundCounter();
+      }
+
+      const rows = document.querySelectorAll("tr.current-player");
+      rows.forEach(row => row.classList.remove("current-player"));
+      document.getElementById(`player-row-${currentPlayerIndex}`).classList.add("current-player");
+    }
+
+    function resetScoreTracker() {
+      if (confirm("Are you sure you want to reset the Score Tracker?")) {
+        players = [];
+        currentPlayerIndex = 0;
+        roundCounter = 0;
+        document.getElementById("roundCounter").textContent = "0";
+        document.getElementById("score-setup").style.display = "block";
+        document.getElementById("score-game").style.display = "none";
+        document.getElementById("playerNames").innerHTML = "";
+        document.getElementById("playerCount").value = "";
+      }
+    }
+
+    // Random Score Game Variables
+    let randomNumber;
+
+    function startRandomGame() {
+      const min = parseInt(document.getElementById("min").value);
+      const max = parseInt(document.getElementById("max").value);
+
+      if (isNaN(min) || isNaN(max) || min >= max) {
+        alert("Please enter a valid range where minimum is less than maximum.");
+        return;
+      }
+
+      randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+
+      document.getElementById('range-setup').style.display = 'none';
+      document.getElementById('range-game').style.display = 'block';
+      document.getElementById('message').textContent = '';
+    }
+
+    function checkRandomScore() {
+      const userScore = parseInt(document.getElementById("score").value);
 
       if (isNaN(userScore)) {
-        document.getElementById('message').textContent = 'Please enter a valid score!';
+        document.getElementById("message").textContent = "Please enter a valid score!";
         return;
       }
 
       if (userScore >= randomNumber) {
-        document.getElementById('message').textContent = `Congratulations! Your score (${userScore}) is greater than or equal to the random number (${randomNumber}). Game Over!`;
-        document.getElementById('message').style.color = 'green';
+        document.getElementById("message").textContent = `Congratulations! Your score (${userScore}) is greater than or equal to the random number (${randomNumber}). Game Over!`;
+        document.getElementById("message").style.color = "green";
       } else {
-        document.getElementById('message').textContent = 'Score is less than the random number. Skip turn!';
-        document.getElementById('message').style.color = 'red';
+        document.getElementById("message").textContent = "Score is less than the random number. Try Again!";
+        document.getElementById("message").style.color = "red";
       }
+    }
+
+    function resetRandomGame() {
+      if (confirm("Are you sure you want to reset the Random Score game?")) {
+        document.getElementById("range-game").style.display = "none";
+        document.getElementById("range-setup").style.display = "block";
+        document.getElementById("min").value = "";
+        document.getElementById("max").value = "";
+        document.getElementById("message").textContent = "";
+      }
+    }
+
+    function toggleCollapsible() {
+      const content = document.getElementById("randomScoreContent");
+      content.style.display = content.style.display === "block" ? "none" : "block";
     }
   </script>
 </body>
