@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Farkle Score Tracker with Optional Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      margin-bottom: 20px;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #4facfe;
+    }
+    label, input, button {
+      display: block;
+      margin: 10px auto;
+    }
+    input {
+      padding: 8px;
+      width: 90%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      padding: 10px 15px;
+      border: none;
+      background: #4facfe;
+      color: white;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #00f2fe;
+    }
+    .player-list {
+      text-align: left;
+      margin-top: 20px;
+    }
+    .player {
+      margin-bottom: 10px;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Farkle Score Tracker with Optional Game</h1>
+
+  <!-- Farkle Score Tracker Section -->
+  <div class="container">
+    <h2>Farkle Score Tracker</h2>
+    <div id="setup">
+      <label for="players">How many players?</label>
+      <input type="number" id="players" placeholder="Enter number of players">
+      <button onclick="enterNames()">Submit</button>
+    </div>
+    <div id="nameEntry" class="hidden">
+      <div id="nameFields"></div>
+      <button onclick="startGame()">Start Game</button>
+    </div>
+    <div id="game" class="hidden">
+      <h3>Enter Scores</h3>
+      <div class="player-list" id="playerList"></div>
+      <button onclick="playOptionalGame()">Play Optional Game</button>
+    </div>
+  </div>
+
+  <!-- Optional Game Section -->
+  <div class="container hidden" id="optionalGame">
+    <h2>Optional Range Game</h2>
+    <label for="min">Enter Minimum Score:</label>
+    <input type="number" id="min" placeholder="Minimum score">
+    <label for="max">Enter Maximum Score:</label>
+    <input type="number" id="max" placeholder="Maximum score">
+    <button onclick="generateRandomNumber()">Generate Random Number</button>
+    <div id="rangeGame" class="hidden">
+      <label for="playerScore">Enter Player's Score:</label>
+      <input type="number" id="playerScore" placeholder="Enter your score">
+      <button onclick="checkRange()">Submit Score</button>
+      <div id="rangeMessage" style="margin-top: 20px; font-size: 18px;"></div>
+    </div>
+  </div>
+
+  <script>
+    let players = [];
+    let scores = [];
+    let randomNumber;
+
+    // Farkle Score Tracker
+    function enterNames() {
+      const playerCount = parseInt(document.getElementById("players").value);
+      if (isNaN(playerCount) || playerCount <= 0) {
+        alert("Please enter a valid number of players.");
+        return;
+      }
+
+      document.getElementById("setup").classList.add("hidden");
+      document.getElementById("nameEntry").classList.remove("hidden");
+
+      const nameFields = document.getElementById("nameFields");
+      nameFields.innerHTML = ""; // Clear previous fields
+
+      for (let i = 1; i <= playerCount; i++) {
+        nameFields.innerHTML += `
+          <label for="player${i}">${i}. Name:</label>
+          <input type="text" id="player${i}" placeholder="Enter player ${i} name">
+        `;
+      }
+    }
+
+    function startGame() {
+      const nameFields = document.querySelectorAll("[id^='player']");
+      players = [];
+      scores = [];
+
+      nameFields.forEach((field, index) => {
+        const name = field.value.trim();
+        if (!name) {
+          alert(`Please enter a name for player ${index + 1}.`);
+          return;
+        }
+        players.push(name);
+        scores.push(0);
+      });
+
+      if (players.length === 0) return;
+
+      document.getElementById("nameEntry").classList.add("hidden");
+      document.getElementById("game").classList.remove("hidden");
+      renderScores();
+    }
+
+    function renderScores() {
+      const playerList = document.getElementById("playerList");
+      playerList.innerHTML = ""; // Clear previous scores
+
+      players.forEach((player, index) => {
+        playerList.innerHTML += `
+          <div class="player">
+            <strong>${player}:</strong> ${scores[index]} points
+            <input type="number" id="score${index}" placeholder="Add score">
+            <button onclick="addScore(${index})">Add Score</button>
+          </div>
+        `;
+      });
+    }
+
+    function addScore(index) {
+      const scoreInput = document.getElementById(`score${index}`);
+      const score = parseInt(scoreInput.value);
+
+      if (isNaN(score) || score < 0) {
+        alert("Please enter a valid score.");
+        return;
+      }
+
+      scores[index] += score;
+      renderScores();
+    }
+
+    // Optional Game
+    function playOptionalGame() {
+      document.getElementById("optionalGame").classList.remove("hidden");
+    }
+
+    function generateRandomNumber() {
+      const min = parseInt(document.getElementById("min").value);
+      const max = parseInt(document.getElementById("max").value);
+
+      if (isNaN(min) || isNaN(max) || min >= max) {
+        alert("Please enter a valid range where minimum is less than maximum.");
+        return;
+      }
+
+      randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+      document.getElementById("rangeGame").classList.remove("hidden");
+      document.getElementById("rangeMessage").textContent = `Random number generated. Enter your score to check!`;
+    }
+
+    function checkRange() {
+      const playerScore = parseInt(document.getElementById("playerScore").value);
+
+      if (isNaN(playerScore)) {
+        alert("Please enter a valid score.");
+        return;
+      }
+
+      if (playerScore >= randomNumber) {
+        document.getElementById("rangeMessage").textContent = `Success! Your score (${playerScore}) is greater than or equal to the random number (${randomNumber}).`;
+      } else {
+        document.getElementById("rangeMessage").textContent = `Try again! Your score (${playerScore}) is less than the random number (${randomNumber}).`;
+      }
+    }
+  </script>
+</body>
+</html>
