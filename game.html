@@ -91,7 +91,6 @@
   </style>
 </head>
 <body>
-  <!-- Farkle Score Tracker -->
   <div class="container">
     <h1>Farkle Score Tracker</h1>
     <div id="score-setup">
@@ -126,7 +125,6 @@
     </div>
   </div>
 
-  <!-- Random Score Game -->
   <div class="container">
     <h1 id="randomScoreToggle" onclick="toggleCollapsible()">Random Score Game Mode (optional)</h1>
     <div id="randomScoreContent" class="collapsible-content">
@@ -148,12 +146,11 @@
   </div>
 
   <script>
-    // Farkle Score Tracker Variables
     let players = [];
     let currentPlayerIndex = 0;
     let roundCounter = 0;
+    let randomNumber;
 
-    // Sync Slider and Input
     function syncSliderAndInput(source) {
       const slider = document.getElementById("pointsSlider");
       const input = document.getElementById("pointsInput");
@@ -167,7 +164,6 @@
       sliderValue.textContent = slider.value;
     }
 
-    // Set up players for the Farkle Score Tracker
     function setupScoreTracker() {
       const playerCount = parseInt(document.getElementById("playerCount").value);
       if (!playerCount || playerCount < 2) {
@@ -270,9 +266,6 @@
       }
     }
 
-    // Random Score Game Variables
-    let randomNumber;
-
     function startRandomGame() {
       const min = parseInt(document.getElementById("min").value);
       const max = parseInt(document.getElementById("max").value);
@@ -300,20 +293,27 @@
       if (userScore >= randomNumber) {
         document.getElementById("message").textContent = `Congratulations! Your score (${userScore}) is greater than or equal to the random number (${randomNumber}). Game Over!`;
         document.getElementById("message").style.color = "green";
+
+        setTimeout(() => {
+          resetRandomGame(false);
+          alert("Game has been reset.");
+        }, 10000);
       } else {
         document.getElementById("message").textContent = "Score is less than the random number. Try Again!";
         document.getElementById("message").style.color = "red";
       }
     }
 
-    function resetRandomGame() {
-      if (confirm("Are you sure you want to reset the Random Score game?")) {
-        document.getElementById("range-game").style.display = "none";
-        document.getElementById("range-setup").style.display = "block";
-        document.getElementById("min").value = "";
-        document.getElementById("max").value = "";
-        document.getElementById("message").textContent = "";
+    function resetRandomGame(requireConfirmation = true) {
+      if (requireConfirmation) {
+        const confirmReset = confirm("Are you sure you want to reset the Random Score game?");
+        if (!confirmReset) return;
       }
+      document.getElementById("range-game").style.display = "none";
+      document.getElementById("range-setup").style.display = "block";
+      document.getElementById("min").value = "";
+      document.getElementById("max").value = "";
+      document.getElementById("message").textContent = "";
     }
 
     function toggleCollapsible() {
