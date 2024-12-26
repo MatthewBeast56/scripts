@@ -9,7 +9,7 @@
     html, body {
       margin: 0;
       padding: 0;
-      font-family: Arial, sans-serif;
+      font-family: 'Verdana', Arial, sans-serif;
       background: linear-gradient(135deg, #4facfe, #00f2fe);
       color: #333;
       height: 100vh;
@@ -118,7 +118,7 @@
           <label for="pointsSlider">Select Points for Current Player:</label>
           <input type="range" id="pointsSlider" min="0" max="3000" step="50" value="0" oninput="syncSliderAndInput('slider')">
           <div class="slider-value">Selected Points: <span id="sliderValue">0</span></div>
-          <input type="number" id="pointsInput" min="0" max="3000" step="50" value="0" oninput="syncSliderAndInput('input')" placeholder="Enter points manually">
+          <input type="number" id="pointsInput" step="50" value="0" oninput="syncSliderAndInput('input')" placeholder="Enter points manually">
         </div>
         <button onclick="nextTurn()">Next Turn</button>
         <button onclick="resetScoreTracker()">Reset Score Tracker</button>
@@ -237,7 +237,7 @@
     }
 
     function nextTurn() {
-      const points = parseInt(document.getElementById("pointsSlider").value);
+      const points = parseInt(document.getElementById("pointsInput").value);
 
       players[currentPlayerIndex].score += points;
       document.getElementById(`score-${players[currentPlayerIndex].id}`).textContent = players[currentPlayerIndex].score;
@@ -278,14 +278,17 @@
 
   randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
 
-  // Update the label text with the range
+  // Format numbers with commas and update the label
+  const formattedMin = min.toLocaleString();
+  const formattedMax = max.toLocaleString();
   const scoreLabel = document.querySelector('#range-game label[for="score"]');
-  scoreLabel.textContent = `What is your score? (Range: ${min} - ${max})`;
+  scoreLabel.textContent = `What is your score? (Range: ${formattedMin} - ${formattedMax})`;
 
   document.getElementById('range-setup').style.display = 'none';
   document.getElementById('range-game').style.display = 'block';
   document.getElementById('message').textContent = '';
 }
+
 
 
     function checkRandomScore() {
