@@ -268,20 +268,25 @@
     }
 
     function startRandomGame() {
-      const min = parseInt(document.getElementById("min").value);
-      const max = parseInt(document.getElementById("max").value);
+  const min = parseInt(document.getElementById("min").value);
+  const max = parseInt(document.getElementById("max").value);
 
-      if (isNaN(min) || isNaN(max) || min >= max) {
-        alert("Please enter a valid range where minimum is less than maximum.");
-        return;
-      }
+  if (isNaN(min) || isNaN(max) || min >= max) {
+    alert("Please enter a valid range where minimum is less than maximum.");
+    return;
+  }
 
-      randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+  randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
 
-      document.getElementById('range-setup').style.display = 'none';
-      document.getElementById('range-game').style.display = 'block';
-      document.getElementById('message').textContent = '';
-    }
+  // Update the label text with the range
+  const scoreLabel = document.querySelector('#range-game label[for="score"]');
+  scoreLabel.textContent = `What is your score? (Range: ${min} - ${max})`;
+
+  document.getElementById('range-setup').style.display = 'none';
+  document.getElementById('range-game').style.display = 'block';
+  document.getElementById('message').textContent = '';
+}
+
 
     function checkRandomScore() {
       const userScore = parseInt(document.getElementById("score").value);
