@@ -39,7 +39,7 @@
 /* Add a media query for extra responsiveness on very small screens */
 @media (max-width: 600px) {
   .container {
-    width: calc(100% - 40px); /* Provides white space while taking the full width on small devices */
+    width: calc(100% - 50px); /* Provides white space while taking the full width on small devices */
     padding: 15px; /* Slightly reduce padding for smaller screens */
     margin: 10px auto;
   }
@@ -248,7 +248,7 @@
         }
       }
 
-      sliderValue.textContent = `Selected Points: ${slider.value}`;
+      sliderValue.textContent = `${slider.value}`;
     }
 
     function roundPointsInput() {
@@ -266,7 +266,7 @@
       slider.value = inputValue;
 
       const sliderValue = document.getElementById("sliderValue");
-      sliderValue.textContent = `Selected Points: ${inputValue}`;
+      sliderValue.textContent = `${inputValue}`;
     }
 
     function setupScoreTracker() {
