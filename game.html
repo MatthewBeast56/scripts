@@ -27,14 +27,23 @@
       z-index: -1;
     }
     .container {
-      background: white;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      margin: 20px auto;
-      max-width: 800px;
-      width: 90%;
-    }
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  margin: 20px auto;
+  max-width: 800px;
+  width: calc(90% - 40px); /* Ensures white space on smaller screens */
+}
+
+/* Add a media query for extra responsiveness on very small screens */
+@media (max-width: 600px) {
+  .container {
+    width: calc(100% - 40px); /* Provides white space while taking the full width on small devices */
+    padding: 15px; /* Slightly reduce padding for smaller screens */
+    margin: 10px auto;
+  }
+}
     h1, h2 {
       font-size: 24px;
       color: #4facfe;
