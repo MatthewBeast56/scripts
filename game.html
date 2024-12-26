@@ -291,7 +291,7 @@
       }
 
       if (userScore >= randomNumber) {
-        document.getElementById("message").textContent = `Congratulations! Your score (${userScore}) is greater than or equal to the random number (${randomNumber}). Game Over!`;
+        document.getElementById("message").textContent = `Congratulations! Your ${userScore} is greater than or equal to the random number (${randomNumber}). Game Over!`;
         document.getElementById("message").style.color = "green";
 
         setTimeout(() => {
@@ -299,7 +299,7 @@
           alert("Random Score has been reset.");
         }, 5000);
       } else {
-        document.getElementById("message").textContent = '${userScore} is less than the random score. Skip Turn!';
+        document.getElementById("message").textContent = `${userScore} is less than the random score. Skip Turn!`;
         document.getElementById("message").style.color = "red";
       }
     }
