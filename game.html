@@ -10,9 +10,21 @@
       margin: 0;
       padding: 0;
       font-family: 'Verdana', Arial, sans-serif;
-      background: linear-gradient(135deg, #4facfe, #00f2fe);
       color: #333;
-      height: 100vh;
+      height: 100%;
+      overflow-y: auto; /* Allow scrolling for tall content */
+    }
+    body {
+      position: relative;
+      min-height: 100%;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
     }
     .container {
       background: white;
@@ -92,6 +104,8 @@
   </style>
 </head>
 <body>
+  <canvas id="triangleCanvas"></canvas>
+
   <div class="container">
     <h1>Farkle Score Tracker</h1>
     <div id="score-setup">
@@ -118,7 +132,7 @@
           <label for="pointsSlider">Select Points for Current Player:</label>
           <input type="range" id="pointsSlider" min="0" max="3000" step="50" value="0" oninput="syncSliderAndInput('slider')">
           <div class="slider-value">Selected Points: <span id="sliderValue">0</span></div>
-          <input type="number" id="pointsInput" step="50" value="0" oninput="syncSliderAndInput('input')" placeholder="Enter points manually">
+          <input type="number" id="pointsInput" step="50" value="0" oninput="syncSliderAndInput('input')" onblur="roundPointsInput()" placeholder="Enter points manually">
         </div>
         <button onclick="nextTurn()">Next Turn</button>
         <button onclick="resetScoreTracker()">Reset Score Tracker</button>
@@ -147,6 +161,65 @@
   </div>
 
   <script>
+    // Animated Triangle Background
+    const canvas = document.getElementById("triangleCanvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const triangles = [];
+    const colors = ["#4facfe", "#00f2fe", "#ffffff", "#333"];
+
+    function createTriangle() {
+      return {
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 50 + 20,
+        dx: Math.random() * 2 - 1,
+        dy: Math.random() * 2 - 1,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      };
+    }
+
+    function drawTriangle(triangle) {
+      ctx.beginPath();
+      ctx.moveTo(triangle.x, triangle.y);
+      ctx.lineTo(triangle.x + triangle.size, triangle.y + triangle.size / 2);
+      ctx.lineTo(triangle.x, triangle.y + triangle.size);
+      ctx.closePath();
+      ctx.fillStyle = triangle.color;
+      ctx.fill();
+    }
+
+    function updateTriangles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      triangles.forEach((triangle) => {
+        triangle.x += triangle.dx;
+        triangle.y += triangle.dy;
+
+        if (triangle.x > canvas.width || triangle.x < 0) triangle.dx *= -1;
+        if (triangle.y > canvas.height || triangle.y < 0) triangle.dy *= -1;
+
+        drawTriangle(triangle);
+      });
+
+      requestAnimationFrame(updateTriangles);
+    }
+
+    for (let i = 0; i < 50; i++) {
+      triangles.push(createTriangle());
+    }
+
+    updateTriangles();
+
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    // Game Logic (Farkle Score Tracker and Random Score Game)
     let players = [];
     let currentPlayerIndex = 0;
     let roundCounter = 0;
@@ -159,10 +232,32 @@
 
       if (source === "slider") {
         input.value = slider.value;
-      } else {
-        slider.value = input.value;
+      } else if (source === "input") {
+        const inputValue = parseInt(input.value);
+        if (!isNaN(inputValue)) {
+          slider.value = inputValue;
+        }
       }
-      sliderValue.textContent = slider.value;
+
+      sliderValue.textContent = `Selected Points: ${slider.value}`;
+    }
+
+    function roundPointsInput() {
+      const input = document.getElementById("pointsInput");
+      const slider = document.getElementById("pointsSlider");
+      let inputValue = parseInt(input.value);
+
+      if (isNaN(inputValue)) {
+        inputValue = 0;
+      }
+
+      inputValue = Math.round(inputValue / 50) * 50;
+
+      input.value = inputValue;
+      slider.value = inputValue;
+
+      const sliderValue = document.getElementById("sliderValue");
+      sliderValue.textContent = `Selected Points: ${inputValue}`;
     }
 
     function setupScoreTracker() {
@@ -268,28 +363,25 @@
     }
 
     function startRandomGame() {
-  const min = parseInt(document.getElementById("min").value);
-  const max = parseInt(document.getElementById("max").value);
+      const min = parseInt(document.getElementById("min").value);
+      const max = parseInt(document.getElementById("max").value);
 
-  if (isNaN(min) || isNaN(max) || min >= max) {
-    alert("Please enter a valid range where minimum is less than maximum.");
-    return;
-  }
+      if (isNaN(min) || isNaN(max) || min >= max) {
+        alert("Please enter a valid range where minimum is less than maximum.");
+        return;
+      }
 
-  randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+      randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
 
-  // Format numbers with commas and update the label
-  const formattedMin = min.toLocaleString();
-  const formattedMax = max.toLocaleString();
-  const scoreLabel = document.querySelector('#range-game label[for="score"]');
-  scoreLabel.textContent = `What is your score? (Range: ${formattedMin} - ${formattedMax})`;
+      const formattedMin = min.toLocaleString();
+      const formattedMax = max.toLocaleString();
+      const scoreLabel = document.querySelector('#range-game label[for="score"]');
+      scoreLabel.textContent = `What is your score? (Range: ${formattedMin} - ${formattedMax})`;
 
-  document.getElementById('range-setup').style.display = 'none';
-  document.getElementById('range-game').style.display = 'block';
-  document.getElementById('message').textContent = '';
-}
-
-
+      document.getElementById('range-setup').style.display = 'none';
+      document.getElementById('range-game').style.display = 'block';
+      document.getElementById('message').textContent = '';
+    }
 
     function checkRandomScore() {
       const userScore = parseInt(document.getElementById("score").value);
