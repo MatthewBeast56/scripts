@@ -1,23 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image" href="https://cd2.boardgamesmaker.com/AttachFiles/WebsiteImages/Product_Show/FI_8807.jpg">
+  <link rel="icon" type="image"
+    href="https://cd2.boardgamesmaker.com/AttachFiles/WebsiteImages/Product_Show/FI_8807.jpg">
   <title>Farkle Score Tracker</title>
   <style>
-    html, body {
+    html,
+    body {
       margin: 0;
       padding: 0;
       font-family: 'Verdana', Arial, sans-serif;
       color: #333;
       height: 100%;
-      overflow-y: auto; /* Allow scrolling for tall content */
+      overflow-y: auto;
+      /* Allow scrolling for tall content */
     }
+
     body {
       position: relative;
       min-height: 100%;
     }
+
     canvas {
       position: fixed;
       top: 0;
@@ -26,58 +32,76 @@
       height: 100%;
       z-index: -1;
     }
-    .container {
-  background: white;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  margin: 20px auto;
-  max-width: 800px;
-  width: calc(90% - 40px); /* Ensures white space on smaller screens */
-}
 
-/* Add a media query for extra responsiveness on very small screens */
-@media (max-width: 600px) {
-  .container {
-    width: calc(100% - 50px); /* Provides white space while taking the full width on small devices */
-    padding: 15px; /* Slightly reduce padding for smaller screens */
-    margin: 10px auto;
-  }
-}
-    h1, h2 {
+    .container {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      margin: 20px auto;
+      max-width: 800px;
+      width: calc(90% - 40px);
+      /* Ensures white space on smaller screens */
+    }
+
+    /* Add a media query for extra responsiveness on very small screens */
+    @media (max-width: 600px) {
+      .container {
+        width: calc(100% - 50px);
+        /* Provides white space while taking the full width on small devices */
+        padding: 15px;
+        /* Slightly reduce padding for smaller screens */
+        margin: 10px auto;
+      }
+    }
+
+    h1,
+    h2 {
       font-size: 24px;
       color: #4facfe;
       text-align: center;
       cursor: pointer;
     }
+
     table {
       margin: 20px auto;
       border-collapse: collapse;
       width: 100%;
     }
-    th, td {
+
+    th,
+    td {
       border: 1px solid #ddd;
       padding: 8px;
     }
+
     th {
       background-color: #f4f4f4;
     }
+
     tr.current-player {
       background-color: #d3f9d8;
     }
-    label, input, button, .slider-container {
+
+    label,
+    input,
+    button,
+    .slider-container {
       display: block;
       margin: 10px auto;
       width: 80%;
     }
+
     input[type="range"] {
       width: 100%;
     }
+
     .slider-value {
       text-align: center;
       font-size: 16px;
       margin-top: 5px;
     }
+
     button {
       padding: 10px 15px;
       border: none;
@@ -87,22 +111,43 @@
       border-radius: 5px;
       cursor: pointer;
     }
+
+    .nextBack-button {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 10px;
+      margin-left: 10%;
+      margin-right: 10%;
+    }
+
+    .reset-button {
+      display: block;
+      margin: 0 auto;
+      margin-top: 5px;
+    }
+
+
     button:hover {
       background: #00f2fe;
     }
+
     .message {
       margin-top: 10px;
       font-weight: bold;
     }
+
     .controls {
       margin: 20px;
       text-align: center;
     }
+
     .collapsible-content {
       display: none;
       overflow: hidden;
       transition: max-height 0.3s ease-out;
     }
+
     .round-counter {
       text-align: center;
       font-size: 18px;
@@ -112,6 +157,7 @@
     }
   </style>
 </head>
+
 <body>
   <canvas id="triangleCanvas"></canvas>
 
@@ -139,12 +185,17 @@
       <div class="controls">
         <div class="slider-container">
           <label for="pointsSlider">Select Points for Current Player:</label>
-          <input type="range" id="pointsSlider" min="0" max="3000" step="50" value="0" oninput="syncSliderAndInput('slider')">
+          <input type="range" id="pointsSlider" min="0" max="3000" step="50" value="0"
+            oninput="syncSliderAndInput('slider')">
           <div class="slider-value">Selected Points: <span id="sliderValue">0</span></div>
-          <input type="number" id="pointsInput" step="50" value="0" oninput="syncSliderAndInput('input')" onblur="roundPointsInput()" placeholder="Enter points manually">
+          <input type="number" id="pointsInput" step="50" value="0" oninput="syncSliderAndInput('input')"
+            onblur="roundPointsInput()" placeholder="Enter points manually">
         </div>
-        <button onclick="nextTurn()">Next Turn</button>
-        <button onclick="resetScoreTracker()">Reset Score Tracker</button>
+        <div class="nextBack-button">
+          <button onclick="goBack()">Back</button>
+          <button onclick="nextTurn()">Next Turn</button>
+        </div>
+        <button class="reset-button" onclick="resetScoreTracker()">Reset Score Tracker</button>
       </div>
     </div>
   </div>
@@ -234,6 +285,7 @@
     let roundCounter = 0;
     let randomNumber;
 
+
     function syncSliderAndInput(source) {
       const slider = document.getElementById("pointsSlider");
       const input = document.getElementById("pointsInput");
@@ -249,6 +301,8 @@
       }
 
       sliderValue.textContent = `${slider.value}`;
+
+
     }
 
     function roundPointsInput() {
@@ -356,6 +410,23 @@
       const rows = document.querySelectorAll("tr.current-player");
       rows.forEach(row => row.classList.remove("current-player"));
       document.getElementById(`player-row-${currentPlayerIndex}`).classList.add("current-player");
+      resetScoreToZero();
+    }
+    function goBack() {
+      const playerCount = parseInt(document.getElementById("playerCount").value);
+
+      if (currentPlayerIndex != 0) {
+        currentPlayerIndex--;
+      } else if (currentPlayerIndex === 0)
+      {
+        currentPlayerIndex = playerCount - 1;
+        roundCounter--;
+      }
+      const rows = document.querySelectorAll("tr.current-player");
+      rows.forEach(row => row.classList.remove("current-player"));
+      document.getElementById(`player-row-${currentPlayerIndex}`).classList.add("current-player");
+      resetScoreToZero();
+
     }
 
     function resetScoreTracker() {
@@ -430,6 +501,14 @@
       const content = document.getElementById("randomScoreContent");
       content.style.display = content.style.display === "block" ? "none" : "block";
     }
+    function resetScoreToZero() {
+      const input = document.getElementById("pointsInput");
+      const slider = document.getElementById("pointsSlider");
+      slider.value = 0;
+      input.value = 0;
+      sliderValue.textContent = 0;
+    }
   </script>
 </body>
+
 </html>
