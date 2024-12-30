@@ -417,7 +417,7 @@
 
       if (currentPlayerIndex != 0) {
         currentPlayerIndex--;
-      } else if (currentPlayerIndex === 0)
+      } else if (currentPlayerIndex === 0 && roundCounter != 0)
       {
         currentPlayerIndex = playerCount - 1;
         roundCounter--;
@@ -425,6 +425,7 @@
       const rows = document.querySelectorAll("tr.current-player");
       rows.forEach(row => row.classList.remove("current-player"));
       document.getElementById(`player-row-${currentPlayerIndex}`).classList.add("current-player");
+      updateRoundCounter();
       resetScoreToZero();
 
     }
